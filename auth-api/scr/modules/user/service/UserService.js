@@ -1,17 +1,14 @@
-import UserRepository from "../repository/UserRepository";
-import * as httpStatus from "../../../config/constants/httpStatus";
-import { use } from "bcrypt/promises";
+import UserRepository from "../repository/UserRepository.js";
+import * as httpStatus from "../../../config/constants/httpStatus.js";
+import UserException from "../exception/UserException.js";
 
 class UserService {
     async findByEmail(req) {
         try {
             const { email } = req.params;
-            this.validadarDadosRequisicao(email);
-            let user = UserRepository.findByEmail(email);
-
-            if (!user) {
-            }
-
+            this.validateRequestData(email);
+            let user = await UserRepository.findByEmail(email);
+            this.validateUserNotFound(user);
             return {
                 status: httpStatus.SUCCESS,
                 user: {
@@ -30,8 +27,17 @@ class UserService {
         }
     }
 
-    validadarDadosRequisicao(email) {
-        if (!email) throw new Error("User email was not informed.");
+    validateRequestData(email) {
+        if (!email)
+            throw new UserException(
+                httpStatus.BAD_REQUEST,
+                "User email was not informed."
+            );
+    }
+
+    validateUserNotFound(user) {
+        if (!user)
+            throw new Error(httpStatus.BAD_REQUEST, "User was not found!");
     }
 }
 
